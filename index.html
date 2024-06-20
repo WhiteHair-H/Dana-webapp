@@ -1,158 +1,22 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>댓글 이벤트</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            position: relative;
-        }
-        .comment-form {
-            margin-top: 20px;
-        }
-        .comment-form input, .comment-form textarea {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 5px 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .comment-form button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .comment-form button:hover {
-            background-color: #0056b3;
-        }
-        .rating-options {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-        }
-        .rating-options label {
-            flex: 1;
-            text-align: center;
-        }
-        .comments {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .comment {
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            position: relative;
-            border: 1px solid #ddd;
-        }
-        .comment::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 20px;
-            width: 0;
-            height: 0;
-            border: 10px solid transparent;
-            border-top-color: #f9f9f9;
-            border-bottom: 0;
-            border-left: 0;
-            margin-left: -10px;
-        }
-        .comment:nth-child(odd) {
-            background-color: #FFD8D8;
-        }
-        .comment:nth-child(even) {
-            background-color: #D4F4FA;
-        }
-        .comment .nickname {
-            font-weight: bold;
-        }
-        .datetime {
-            text-align: right;
-            font-weight: normal;
-        }
-        .download-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .download-btn:hover {
-            background-color: #218838;
-        }
-        /* Popup styles */
-        .popup {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-        .popup-content {
-            background-color: #fff;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-            border-radius: 5px;
-            position: relative;
-        }
-        .popup-content input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 5px 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .popup-content button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .popup-content button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+
 </head>
+
 <body>
     <div class="container">
-        <img src="https://easyphoner.com/wp-content/uploads/2024/06/KakaoTalk_20240611_135015002.png" alt="이벤트 이미지" style="max-width: 100%; height: auto;">
+        <img src="https://easyphoner.com/wp-content/uploads/2024/06/KakaoTalk_20240611_135015002.png" alt="이벤트 이미지"
+            style="max-width: 100%; height: auto;">
         <div class="comment-form">
             <h2>댓글 작성하기</h2>
             <input type="text" id="booktitle" placeholder="책 제목" required>
@@ -211,225 +75,26 @@
         </div>
     </div>
 
+
     <script>
-        let users = JSON.parse(localStorage.getItem('users')) || [];
-        let comments = JSON.parse(localStorage.getItem('comments')) || [];
 
-        document.addEventListener('DOMContentLoaded', (event) => {
-            loadComments();
-            document.getElementById('loginPopup').style.display = 'block';
-        });
+        var firebaseConfig = {
+            apiKey: "AIzaSyAjh9II0I-juQ_wItaJ6Ppr4gbsx-YSrXU",
+            authDomain: "dana-web-01.firebaseapp.com",
+            projectId: "dana-web-01",
+            storageBucket: "dana-web-01.appspot.com",
+            messagingSenderId: "788165022176",
+            appId: "1:788165022176:web:8157291118cd74ce0b9b85",
+            measurementId: "G-7XY991YGK7"
+        };
 
-        function showPopup(popupId) {
-            document.getElementById(popupId).style.display = 'block';
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
 
-        function hidePopup(popupId) {
-            document.getElementById(popupId).style.display = 'none';
-        }
+        // Initialize Firestore
+        var db = firebase.firestore();
 
-        function showLogin() {
-            hidePopup('idCreatePopup');
-            hidePopup('passwordResetPopup');
-            showPopup('loginPopup');
-        }
-
-        function showIdCreate() {
-            hidePopup('loginPopup');
-            showPopup('idCreatePopup');
-        }
-
-        function showPasswordReset() {
-            hidePopup('loginPopup');
-            showPopup('passwordResetPopup');
-        }
-
-        function login() {
-            const name = document.getElementById('loginName').value;
-            const password = document.getElementById('loginPassword').value;
-            const user = users.find(u => u.name === name && u.password === password);
-
-            if (user) {
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                hidePopup('loginPopup');
-            } else {
-                alert('로그인 정보가 올바르지 않습니다.');
-            }
-        }
-
-        function createId() {
-            const name = document.getElementById('createName').value;
-            const password = document.getElementById('createPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const rrn = document.getElementById('rrn').value;
-
-            if (password !== confirmPassword) {
-                alert('비밀번호가 일치하지 않습니다.');
-                return;
-            }
-
-            if (isNaN(rrn) || rrn.length !== 7) {
-                alert('주민등록번호 뒷자리 형식이 잘못되었습니다.');
-                return;
-            }
-
-            const user = { name, password, rrn };
-            users.push(user);
-            localStorage.setItem('users', JSON.stringify(users));
-            alert('ID가 생성되었습니다.');
-            showLogin();
-        }
-
-        function resetPassword() {
-            const name = document.getElementById('resetName').value;
-            const rrn = document.getElementById('resetRrn').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-            if (newPassword !== confirmNewPassword) {
-                alert('비밀번호가 일치하지 않습니다.');
-                return;
-            }
-
-            const user = users.find(u => u.name === name && u.rrn === rrn);
-            if (user) {
-                user.password = newPassword;
-                localStorage.setItem('users', JSON.stringify(users));
-                alert('비밀번호가 재설정되었습니다.');
-                showLogin();
-            } else {
-                alert('입력 정보가 올바르지 않습니다.');
-            }
-        }
-
-        function loadComments() {
-            const commentSection = document.getElementById('comments');
-            commentSection.innerHTML = '';
-            comments.forEach(comment => {
-                displayComment(comment);
-            });
-        }
-
-        function saveComments(comments) {
-            localStorage.setItem('comments', JSON.stringify(comments));
-        }
-
-        function addComment() {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (!currentUser) {
-                alert('로그인이 필요합니다.');
-                showLogin();
-                return;
-            }
-
-            const booktitle = document.getElementById('booktitle').value;
-            const rating = document.querySelector('input[name="rating"]:checked').value;
-            const content = document.getElementById('content').value;
-            const datetime = new Date().toLocaleString();
-
-            if (booktitle && rating && content) {
-                const newComment = { nickname: currentUser.name, booktitle, rating, content, datetime, id: new Date().getTime() };
-                comments.push(newComment);
-                saveComments(comments);
-                displayComment(newComment);
-                document.getElementById('booktitle').value = '';
-                document.getElementById('content').value = '';
-                document.getElementById('rating').value = '';
-                document.querySelector('input[name="rating"]:checked').checked = false;
-            } else {
-                alert('모든 필드를 입력해주세요.');
-            }
-        }
-
-        function displayComment(comment) {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            const commentSection = document.getElementById('comments');
-            const newComment = document.createElement('div');
-            newComment.classList.add('comment');
-            newComment.innerHTML = `
-                <p class="nickname">${comment.nickname}</p>
-                <p class="book-title">책 제목: ${comment.booktitle}</p>
-                <p class="rating"> ${'★'.repeat(comment.rating)}${'☆'.repeat(5 - comment.rating)}</p>
-                <p>${comment.content}</p>
-                <p class="datetime">${comment.datetime}</p>
-                ${currentUser && currentUser.name === comment.nickname ? `<button onclick="confirmDelete(${comment.id})">삭제</button>` : ''}
-            `;
-            commentSection.insertBefore(newComment, commentSection.firstChild);
-        }
-
-        function confirmDelete(commentId) {
-            const result = confirm('정말 이 댓글을 삭제하시겠습니까?');
-            if (result) {
-                deleteComment(commentId);
-            }
-        }
-
-        function deleteComment(commentId) {
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            const commentIndex = comments.findIndex(c => c.id === commentId);
-
-            if (commentIndex !== -1 && comments[commentIndex].nickname === currentUser.name) {
-                comments.splice(commentIndex, 1);
-                saveComments(comments);
-                loadComments();
-            } else {
-                alert('댓글을 삭제할 권한이 없습니다.');
-            }
-        }
-
-        function downloadResults() {
-            const inputPassword = prompt('비밀번호를 입력하세요:');
-            if (inputPassword === 'pagrand') {
-                if (comments.length > 0) {
-                    const worksheet = XLSX.utils.json_to_sheet(comments);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Comments');
-                    XLSX.writeFile(workbook, 'comments.xlsx');
-                } else {
-                    alert('다운로드할 댓글이 없습니다.');
-                }
-            } else {
-                alert('비밀번호가 일치하지 않습니다.');
-            }
-        }
     </script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBzA8qQwVyk2dXgqxu3rZplb-an_icNCSY",
-    authDomain: "book-club-24.firebaseapp.com",
-    databaseURL: "https://book-club-24-default-rtdb.firebaseio.com",
-    projectId: "book-club-24",
-    storageBucket: "book-club-24.appspot.com",
-    messagingSenderId: "40609120563",
-    appId: "1:40609120563:web:3870108f096d3a9a09be46",
-    measurementId: "G-XFKF0MTZHJ"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-
-<script>
-localStorage.setItem('currentUser', JSON.stringify(user));
-set(ref(database, 'comments/' + newComment.id), newComment);
-
-const commentsRef = ref(database, 'comments');
-get(commentsRef).then((snapshot) => {
-  snapshot.forEach((childSnapshot) => {
-    const comment = childSnapshot.val();
-    displayComment(comment);
-  });
-});
-</script>
 </body>
-</html>
 
+</html>
